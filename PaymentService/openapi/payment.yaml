@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Payment Service API
+  version: 1.0.0
+  description: Handles payment intents, confirmation callbacks, refunds, and status.
+
+servers:
+  - url: http://localhost:8104
+    description: Local
+  - url: https://payment.foodly.example.com
+    description: Production
+
+tags:
+  - name: Payments
+
+paths:
+  /payments/intent:
+    post:
+      tags: [Payments]
+      summary: Create payment intent for an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, method]
+              properties:
+                orderId: { type: string }
+                method:
+                  type: string
+                  enum: [card, wallet, upi, cod]
+      responses:
+        '201':
+          description: Payment intent
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentIntent' }
+
+  /payments/{paymentId}:
+    get:
+      tags: [Payments]
+      summary: Get payment status
+      parameters:
+        - in: path
+          name: paymentId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payment intent
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentIntent' }
+
+components:
+  schemas:
+    PaymentIntent:
+      type: object
+      required: [id, orderId, amount, currency, status]
+      properties:
+        id: { type: string }
+        orderId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        status:
+          type: string
+          enum: [requires_payment_method, requires_confirmation, processing, succeeded, failed, cancelled, refunded]
+        provider: { type: string }
+        clientSecret: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
